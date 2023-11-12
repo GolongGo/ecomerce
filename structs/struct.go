@@ -20,3 +20,58 @@ type Previlage struct {
 	Previlage   string
 	Description string
 }
+
+type RolePrevilage struct {
+	RoeleId     int
+	PrevilageId int
+}
+
+type UserRole struct {
+	UserId int
+	RoleId int
+}
+
+type BlogCategory struct {
+	Id       int
+	Category string
+}
+
+type Blog struct {
+	Id         int
+	Judul      string
+	Body       string
+	Foto       string
+	CreatedBy  string
+	CreatedAt  date
+	UpdatedBy  string
+	UpdatedAt  date
+	categoryId int
+}
+
+type Catalog struct {
+	Id          int
+	ProductName string
+	Harga       int
+	Detail      string
+	InfoPenting string
+	Foto        string
+	SisaStok    int
+	CreatedBy   string
+	CreatedAt   date
+	UpdatedBy   string
+	UpdatedAt   date
+}
+
+type CategoryProduct struct {
+	Id      int
+	Product string
+}
+
+type Merek struct {
+	Id        int
+	Merek     string
+	ProductId int
+}
+
+type About struct {
+}
