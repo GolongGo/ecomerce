@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	// "strconv"
-	// "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
-	
+
+	"ecomerce/config"
 	"ecomerce/helper"
 	"ecomerce/model"
-	"ecomerce/config"
 )
 
 var ResponseJson = helper.ResponseJson
 var ResponseError = helper.ResponseError
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func createUser(w http.ResponseWriter, r *http.Request) {
 
 	// cek metohod yang di kirim (POST)
 	if r.Method != http.MethodPost {
@@ -60,4 +60,70 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	} else{
 		ResponseError(w, http.StatusBadRequest, "User Sudah ada")
 	}
+}
+
+func editUser(w http.ResponseWriter, r *http.Request) {
+	var user model.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		ResponseError(w,http.StatusBadRequest, "request body belum sesuai")
+		return
+	}
+
+	if user.Name == "" || user.Password == "" || len(user.Roles) == 0 {
+		ResponseError(w,http.StatusBadRequest, "Username, Password, dan minimal satu Role harus diisi")
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		ResponseError(w, http.StatusInternalServerError,"Failed to encrypt password")
+		return
+	}
+	user.Password = string(hashedPassword)
+	var existing model.User
+	result := config.DB.Where("id_user = ?", existing.UserId).First(&existing)
+	 if result == nil{
+
+		tx := config.DB.Begin()
+
+		tx.Model(&existing).Updates(user)
+
+	for _, role := range user.Roles {
+		tx.FirstOrCreate(&model.Role{}, model.Role{Name: role.Name}).Scan(&role)
+		tx.Model(&existing).Association("Roles").Append(role)
+	}
+
+	tx.Commit()
+	ResponseJson(w,http.StatusOK,"succes")
+	return
+	 } else{
+		ResponseError(w,http.StatusNotFound,"data tidak di temukan")
+		return
+	}
+}
+
+func GetUserById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	UserId, ok := vars["user_id"]
+	if !ok || UserId == "" {
+		ResponseError(w,http.StatusBadRequest,"user_id Wajib diisi")
+		return
+	}
+
+	var user model.User
+	if config.DB.Preload("Roles").First(&user, UserId) != nil {
+		ResponseError(w,http.StatusNotFound,"tidak ada data")
+		return
+	}
+
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		ResponseError(w, http.StatusInternalServerError,"error")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	ResponseJson(w,http.StatusOK,"succes")
+	w.Write(userJSON)
 }
