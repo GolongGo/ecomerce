@@ -8,6 +8,8 @@ func SetupRouter() *mux.Router {
 	router := mux.NewRouter()
 
 	// userManagemnt
-	router.HandleFunc("/register", CreateUser).Methods("POST")
+	router.HandleFunc("/register", createUser).Methods("POST")
+	router.HandleFunc("/editUser", editUser).Methods("PUT")
+	router.HandleFunc("/userdetail", GetUserById).Methods("GET")
 	return router
 }
