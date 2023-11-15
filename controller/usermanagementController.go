@@ -103,7 +103,7 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetUserById(w http.ResponseWriter, r *http.Request) {
+func getUserById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	UserId, ok := vars["user_id"]
 	if !ok || UserId == "" {
@@ -126,4 +126,25 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	ResponseJson(w,http.StatusOK,"succes")
 	w.Write(userJSON)
+}
+
+func deleteUserbyId(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	UserId, ok := vars["user_id"]
+	if !ok || UserId == "" {
+		ResponseError(w,http.StatusBadRequest,"user_id Wajib diisi")
+		return
+	}
+
+	var user model.User
+	if config.DB.First(&user, UserId) != nil {
+		ResponseError(w,http.StatusNotFound,"tidak ada data")
+		return
+	}
+
+	tx := config.DB.Begin()
+
+	tx.Delete(&user)
+	tx.Commit()
+	ResponseJson(w,http.StatusOK,"succes")
 }
