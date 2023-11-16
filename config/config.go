@@ -12,7 +12,7 @@ import(
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	db, err := gorm.Open(mysql.Open("root:@tcp(localhost:3306)/ecomerce"))
+	db, err := gorm.Open(mysql.Open("root:@tcp(127.0.0.1:3306)/ecommerce"))
 	if err != nil {
 		panic(err)
 	}
