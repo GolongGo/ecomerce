@@ -1,4 +1,8 @@
 package structs
+import (
+	"time"
+	"ecomerce/model"
+)
 
 // type User struct {
 // 	Id       int
@@ -75,3 +79,12 @@ package structs
 
 // type About struct {
 // }
+
+type UserDataResponse struct {
+	ID        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `json:"email"`
+	Roles     []model.Role   `json:"roles"`
+	CreatedAt time.Time `json:"created_At"`
+	Status bool `json:"status"`
+}

@@ -1,10 +1,10 @@
 package main
 
-import(
+import (
 	"net/http"
 
-	"ecomerce/controller"
 	"ecomerce/config"
+	"ecomerce/controller"
 )
 
 func main() {
@@ -14,5 +14,5 @@ func main() {
 	router := controller.SetupRouter()
 
 	http.Handle("/", router)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8090", nil)
 }
