@@ -30,7 +30,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Name == "" || user.Password == "" || len(user.Roles) == 0 {
+	if user.Name == "" || len(user.Roles) == 0 {
 		ResponseError(w, http.StatusBadRequest, "Username, Password, dan minimal satu Role harus diisi")
 		return
 	}
@@ -40,7 +40,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 		ResponseError(w, http.StatusInternalServerError, "Failed to encrypt password")
 		return
 	}
-	user.Password = string(hashedPassword)
+	user.Password = hashedPassword
 
 	var existingUser model.User
 	result := config.DB.Where("email = ?", user.Email).First(&existingUser)
@@ -70,7 +70,7 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user.Name == "" || user.Password == "" || len(user.Roles) == 0 {
+	if user.Name == "" || len(user.Roles) == 0 {
 		ResponseError(w, http.StatusBadRequest, "Username, Password, dan minimal satu Role harus diisi")
 		return
 	}
@@ -80,7 +80,8 @@ func editUser(w http.ResponseWriter, r *http.Request) {
 		ResponseError(w, http.StatusInternalServerError, "Failed to encrypt password")
 		return
 	}
-	user.Password = string(hashedPassword)
+	user.Password = hashedPassword
+
 	var existing model.User
 	result := config.DB.Where("id_user = ?", existing.UserId).First(&existing)
 	if result == nil {

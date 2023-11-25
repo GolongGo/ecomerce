@@ -1,12 +1,10 @@
 package config
 
-import(
-	
+import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
 	"ecomerce/model"
-
 )
 
 var DB *gorm.DB
@@ -16,6 +14,6 @@ func ConnectDatabase() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&model.User{}, &model.Role{}, &model.UserRoles{})
+	db.AutoMigrate(&model.User{}, &model.Role{}, &model.UserRoles{}, &model.Blog{}, &model.Products{}, &model.CategoryItem{}, &model.Category{})
 	DB = db
 }

@@ -3,72 +3,57 @@ package controller
 import (
 	"ecomerce/config"
 	"ecomerce/model"
-	"fmt"
 	"net/http"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/gorilla/sessions"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var store = sessions.NewCookieStore([]byte("secret-key"))
 
-func hashPassword(password string) []byte {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return hashedPassword
-}
+func login(w http.ResponseWriter, r *http.Request) {
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+	var email = r.FormValue("Email")
+	var pass = r.FormValue("Password")
+
 	var user model.User
+	result := config.DB.Where("email =?", email).First(&user)
 
-	// err := json.NewDecoder(r.Body).Decode(&user)
-
-	user.Name = r.FormValue("Name")
-	var userName = r.FormValue("Name")
-	user.Password = r.FormValue("Password")
-
-	fmt.Println(user)
-	fmt.Println(userName)
-
-	// if err != nil {
-	// 	ResponseError(w, http.StatusInternalServerError, "Failed to encrypt password")
-	// 	return
-	// }
-
-	result := config.DB.Where("name =?", user.Name)
-
-	fmt.Println(result)
-
-	if result != nil {
-		tx := config.DB.Begin()
-
-		tx.Commit()
-		ResponseJson(w, http.StatusOK, "succes")
-		return
-	} else {
-		ResponseError(w, http.StatusNotFound, "data tidak di temukan")
+	if result.Error != nil {
+		ResponseError(w, http.StatusInternalServerError, "Data not Found")
 		return
 	}
-	session, _ := store.Get(r, "session-name")
-	session.Values["authenticated"] = true
+
+	if result.RowsAffected == 0 {
+		ResponseError(w, http.StatusNoContent, "User not found")
+		return
+	}
+
+	err := bcrypt.CompareHashAndPassword(user.Password, []byte(pass))
+
+	if err != nil {
+		ResponseError(w, http.StatusForbidden, "Incorrect password")
+		return
+	}
+
+	session, _ := store.Get(r, "id")
+	session.Values["authentecated"] = true
+	session.Values["name"] = user.Name
+	session.Values["roles"] = user.Roles
 	session.Save(r, w)
-}
 
-func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	session, _ := store.Get(r, "session-name")
-
-	// Set authenticated menjadi false
-	session.Values["authenticated"] = false
-	session.Save(r, w)
-
-	// Redirect ke halaman login setelah logout
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	ResponseJson(w, http.StatusOK, "login success!")
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "session-name")
+	// Hapus nilai "authenticated" dari sesi
+	delete(session.Values, "authenticated")
 
-	// Set authenticated menjadi false
-	session.Values["authenticated"] = false
-	session.Save(r, w)
+	err := session.Save(r, w)
+	if err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
+	ResponseJson(w, http.StatusOK, "logout success!")
 }
